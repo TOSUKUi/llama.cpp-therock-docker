@@ -1,9 +1,9 @@
---- a/replace/ggml/src/ggml-cuda/vendors/hip.h
-+++ b/replace/ggml/src/ggml-cuda/vendors/hip.h
+--- a/replace_llama/ggml/src/ggml-cuda/vendors/hip.h
++++ b/replace_llama/ggml/src/ggml-cuda/vendors/hip.h
 @@ -10,9 +10,9 @@
  #include "rocblas/rocblas.h"
  #endif // __HIP_PLATFORM_AMD__
- 
+
 -#define CUBLAS_COMPUTE_16F HIPBLAS_R_16F
 -#define CUBLAS_COMPUTE_32F HIPBLAS_R_32F
 -#define CUBLAS_COMPUTE_32F_FAST_16F HIPBLAS_R_32F
