@@ -1,10 +1,8 @@
-ARG therock_tarball_filename=therock-dist-linux-gfx1151-6.5.0rc20250610.tar.gz
+ARG therock_tarball_filename=therock-dist-linux-gfx1151-7.0.0rc20250710.tar.gz
 
 FROM ubuntu:rolling
 
 WORKDIR /app
-
-
 
 RUN apt update && apt install -y --no-install-recommends \
     wget \
@@ -18,21 +16,18 @@ RUN apt update && apt install -y --no-install-recommends \
     libnuma-dev \
     pkg-config \
     libcurl4-openssl-dev \
-    # TheRockが要求する可能性がある追加の依存関係をインストール
-    # 必要に応じて追加してください (例: libsndfile1-dev, libssl-dev など)
+    clang \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
-
 
 ARG therock_tarball_filename
 ENV ROCM_INSTALL_DIR="/opt/rocm"
 
-COPY ./${therock_tarball_filename} /tmp/
 RUN mkdir -p ${ROCM_INSTALL_DIR} \
-    && tar xvzf /tmp/${therock_tarball_filename} -C ${ROCM_INSTALL_DIR} \
-    && rm /tmp/${therock_tarball_filename}
+    && wget -O /tmp/the_rock.tar.gz "https://github.com/ROCm/TheRock/releases/download/nightly-tarball/${therock_tarball_filename}" \
+    && tar xz -C "${ROCM_INSTALL_DIR}" -f /tmp/the_rock.tar.gz \
+    && rm /tmp/the_rock.tar.gz
 
-
-# HIPCC_COMPILE_FLAGS_APPEND="-I$HOME/llama.cpp-rocm-therock/rocWMMA/library/include"
 ENV ROCM_PATH="/opt/rocm"
 ENV HIP_PLATFORM="amd"
 ENV HIP_PATH="${ROCM_PATH}"
@@ -46,22 +41,23 @@ ENV LIBRARY_PATH="${ROCM_PATH}/lib:${ROCM_PATH}/lib64:${LIBRARY_PATH}"
 ENV CPATH="${HIP_INCLUDE_PATH}:${CPATH}"
 ENV PKG_CONFIG_PATH="${ROCM_PATH}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-COPY ./llama.cpp/ .
-COPY ./replace/ ./llama.cpp/
+RUN git clone https://github.com/ggml-org/llama.cpp ./
+COPY ./replace_llama/ ./
 RUN mkdir build && cd build \
-    # HIPCC を CMake に伝える（hipconfig -l は amdclang++ のパスを返す）
-    # HIP_PATH は hipconfig -R で取得されるROCmルートパスに設定される
-    # HIPCC_COMPILE_FLAGS_APPEND は CMake の CXX_FLAGS に含める
-    # nproc の代わりに固定値またはCPU情報を取得するコマンドを使用
     && HIPCC="$(/opt/rocm/bin/hipconfig -l)/clang" \
        HIP_PATH="$(/opt/rocm/bin/hipconfig -R)" \
        cmake .. \
+           -G Ninja \
            -DGGML_HIP=ON \
            -DAMDGPU_TARGETS=gfx1151 \
            -DCMAKE_BUILD_TYPE=Release \
-           -DCMAKE_CXX_FLAGS="-I${ROCWMMA_LIBRARY_INCLUDE}" \
+           -DCMAKE_C_COMPILER=clang \
+           -DCMAKE_CXX_COMPILER=clang++ \
+           -DHIP_PLATFORM=amd \
+           # -DCMAKE_CXX_FLAGS="-I${ROCWMMA_LIBRARY_INCLUDE}" \
     && cmake --build . --config Release -- -j $(grep -c ^processor /proc/cpuinfo)
 
-CMD ["./build/bin/server"] # もしサーバーバイナリがビルドされる場合
+# もしサーバーバイナリを起動する場合
+CMD ["build/bin/llama-server"]
 
 
