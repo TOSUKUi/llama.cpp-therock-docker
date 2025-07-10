@@ -1,5 +1,8 @@
-# llama.cpp build by TheRock docker container
-llama.cppをtherock版のrocmでビルドするのが、いろいろバージョン管理とかうまくいかないケースに当たった後の手間がだるかったのでdocker化してしまったリポジトリ　
+# llama.cpp build by TheRock docker container for gfx1151(strix halo)
+llama.cppをtherock版のrocmでビルドするのがだるいのでdocker化してしまったリポジトリ　
+
+Ryzen AI Max+ 395(strix halo(gfx1151))向けのリポジトリ
+
 # usage
 Get tarball filename from here
 https://github.com/ROCm/TheRock/releases/tag/nightly-tarball
