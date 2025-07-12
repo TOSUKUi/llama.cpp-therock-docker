@@ -43,21 +43,26 @@ ENV LIBRARY_PATH="${ROCM_PATH}/lib:${ROCM_PATH}/lib64:${LIBRARY_PATH}"
 ENV CPATH="${HIP_INCLUDE_PATH}:${CPATH}"
 ENV PKG_CONFIG_PATH="${ROCM_PATH}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-RUN git clone https://github.com/ggml-org/llama.cpp ./
-COPY ./replace_llama/ ./
+RUN git clone https://github.com/ggml-org/llama.cpp ./ \
+    && sed -i \
+    -e 's/#define CUBLAS_COMPUTE_16F HIPBLAS_R_16F/#define CUBLAS_COMPUTE_16F HIPBLAS_COMPUTE_16F/' \
+    -e 's/#define CUBLAS_COMPUTE_32F HIPBLAS_R_32F/#define CUBLAS_COMPUTE_32F HIPBLAS_COMPUTE_32F/' \
+    -e 's/#define CUBLAS_COMPUTE_32F_FAST_16F HIPBLAS_R_32F/#define CUBLAS_COMPUTE_32F_FAST_16F HIPBLAS_COMPUTE_32F_FAST_16F/' \
+    -e 's/#define cublasComputeType_t hipblasDatatype_t/#define cublasComputeType_t hipblasComputeType_t/' \
+    -e 's/#define cudaDataType_t hipblasDatatype_t/#define cudaDataType_t hipDataType/' \
+    "ggml/src/ggml-cuda/vendors/hip.h"
 ARG amdgpu_targets
 RUN mkdir build && cd build \
     && HIPCC="$(/opt/rocm/bin/hipconfig -l)/clang" \
-       HIP_PATH="$(/opt/rocm/bin/hipconfig -R)" \
-       cmake .. \
-           -G Ninja \
-           -DGGML_HIP=ON \
-           -DAMDGPU_TARGETS=${amdgpu_targets} \
-           -DCMAKE_BUILD_TYPE=Release \
-           -DCMAKE_C_COMPILER=clang \
-           -DCMAKE_CXX_COMPILER=clang++ \
-           -DHIP_PLATFORM=amd \
-           # -DCMAKE_CXX_FLAGS="-I${ROCWMMA_LIBRARY_INCLUDE}" \
+    HIP_PATH="$(/opt/rocm/bin/hipconfig -R)" \
+    cmake .. \
+    -G Ninja \
+    -DGGML_HIP=ON \
+    -DAMDGPU_TARGETS=${amdgpu_targets} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DHIP_PLATFORM=amd \
     && cmake --build . --config Release -- -j $(grep -c ^processor /proc/cpuinfo)
 
 ARG hsa_override_gfx_version
