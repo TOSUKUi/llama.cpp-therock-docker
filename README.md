@@ -8,7 +8,7 @@ Get tarball filename from here
 https://github.com/ROCm/TheRock/releases/tag/nightly-tarball
 
 ```bash
-docker build . --tag llama.cpp:<suitable tag. e.g. therock-dist-linux-gfx1151-7.0.0rc20250710> --build-arg=therock_tarball_filename=<tarball_filename. e.g. therock-dist-linux-gfx1151-7.0.0rc20250710.tar.gz> --build-arg=therock_tarball_filename=<tarball_filename. e.g. therock-dist-linux-gfx1151-7.0.0rc20250710.tar.gz>
+docker build . --tag llama.cpp:<suitable tag. e.g. therock-dist-linux-gfx1151-7.0.0rc20250710> --build-arg=therock_tarball_filename=<tarball_filename. e.g. therock-dist-linux-gfx1151-7.0.0rc20250710.tar.gz>
 ```
 
 ### build llama.cpp for gfx1100 therock build

@@ -63,12 +63,10 @@ RUN mkdir build && cd build \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER=clang++ \
     -DHIP_PLATFORM=amd \
-    && cmake --build . --config Release -- -j $(grep -c ^processor /proc/cpuinfo)
+    && cmake --build . --config Release -- -j $(nproc)
 
 ARG hsa_override_gfx_version
 ENV HSA_OVERRIDE_GFX_VERSION=${hsa_override_gfx_version}
 ENV ROCBLAS_USE_HIPBLASLT=1
 # もしサーバーバイナリを起動する場合
 CMD ["build/bin/llama-server"]
-
-
