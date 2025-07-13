@@ -62,6 +62,7 @@ RUN mkdir build && cd build \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER=clang++ \
+    -DGGML_RPC=ON \
     -DHIP_PLATFORM=amd \
     && cmake --build . --config Release -- -j $(nproc)
 
